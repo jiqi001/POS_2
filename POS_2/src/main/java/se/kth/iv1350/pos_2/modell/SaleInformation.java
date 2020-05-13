@@ -2,7 +2,9 @@ package se.kth.iv1350.pos_2.modell;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import se.kth.iv1350.pos_2.integration.ItemDescriptionDTO;
 
 /**
@@ -11,7 +13,7 @@ import se.kth.iv1350.pos_2.integration.ItemDescriptionDTO;
  * 
  * 
  */
-public class SaleInformation {
+public class SaleInformation{
     private final LocalTime saleTime;
     private final LocalDate saleDate;
     private HashMap<Integer,ItemDescriptionDTO> itemList =
@@ -22,6 +24,7 @@ public class SaleInformation {
     private double total;
     private int totalVAT;
     private int totalPaid;
+    private List <TotalAmountObserver> paymentList= new ArrayList<>();
   
  /**
   * Create a new instance and save the time and date of current sale.
@@ -93,6 +96,7 @@ public class SaleInformation {
     public int payTotalCost(Payment payment){
   
         totalPaid = payment.getPaidAmount();
+        notifyObservers();
         return change = (int) (payment.getPaidAmount() - total);
         
     }
@@ -113,6 +117,9 @@ public class SaleInformation {
         return this.totalPaid;
     }
     public int getAverageVAT(){
+        if(itemList.size()==0){
+            return 0;
+        }
         return this.totalVAT/itemList.size();
     }
     public int getchange(){
@@ -121,7 +128,26 @@ public class SaleInformation {
     public HashMap <Integer, ItemDescriptionDTO> getScannedItems(){
         return this.itemList; 
     }
-  
+    /**
+     * Add observers to the array list.
+     * @param observers Array List of TotalAmountOnserver 
+     */
+     public void addPaidAmount(List<TotalAmountObserver> observers){
+        paymentList.addAll(observers);
+    }
+    /**
+     * loops through the TotalAmoutObserver array list and prints the total amount 
+     * paid for all purchases on the screen. 
+     */ 
+    private void notifyObservers(){
+        for(TotalAmountObserver obs:paymentList){
+            int amount = (int)total;
+            obs.displayPaidAmount(amount);
+        }
+        
+    }
+
+ 
 
     
 }

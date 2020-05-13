@@ -24,20 +24,27 @@ public class InventoryRegistry {
     * @param scannedItem The specified item will be bought by customer.
     * @return <code>item</code> if a item in the database has the same 
     * identifier as the <code>scannedItem</code> return the item with 
-    * the correct quantity, otherwise return<code>null</code>.
+    * the correct quantity.
+    * @throws NoSuchItemException if the searched item does not exist
+    * in the InventoryRegistry.
     */
     
-    public ItemDescriptionDTO getItem(ItemDescriptionDTO scannedItem){
-       
+    public ItemDescriptionDTO getItem(ItemDescriptionDTO scannedItem)
+           throws NoSuchItemException {
+        if(scannedItem.getIdentifier()==999){
+            throw new NoConnectToDatabaseException();
+        }  
+
         if(items.containsKey(scannedItem.getIdentifier())){
                
             validItem= items.get(scannedItem.getIdentifier());
             validItem.setQuantityOfItem(scannedItem.getQuantityOfItem());
-               
             return validItem;
         }
-        return null;
+        throw new NoSuchItemException(scannedItem.getIdentifier());
+ 
     }
+    
    /**
     * When a payment is paid by a customer, quantity of sold item
     * will be update in the database.
@@ -55,7 +62,7 @@ public class InventoryRegistry {
                     saleInformation.getScannedItems().get(identifier).getQuantityOfItem();
                 
                 items.get(identifier).setQuantityOfItem(uppdateQuantity);
-                System.out.println("Sold item is updated in InventoryRegistry");
+                
             }  
             
             else {

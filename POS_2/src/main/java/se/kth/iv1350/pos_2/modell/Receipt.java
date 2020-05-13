@@ -35,7 +35,7 @@ public class Receipt {
     public String receiptToString(){
         StringBuilder sb = new StringBuilder();
         sb.append("\n");
-        sb.append("Receipt");
+        sb.append("-----------------Receipt---------------");
         sb.append("\n");
         sb.append("Saletime ").append(saleInformation.getLocalTime());
         sb.append("\n");
@@ -51,6 +51,7 @@ public class Receipt {
         sb.append("kr ");
         sb.append("Change : ").append(saleInformation.getchange());
         sb.append("kr");
+        sb.append("\n-----------------------------------------");
         
         return sb.toString();
     }

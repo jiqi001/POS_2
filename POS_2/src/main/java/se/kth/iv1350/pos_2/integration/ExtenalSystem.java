@@ -14,9 +14,9 @@ public class ExtenalSystem {
     private AccountingRegistry accountingRegistry;
     
     public ExtenalSystem(){
-        this.inventoryRegistry=inventoryRegistry;
-        this.printer=printer;
-        this.accountingRegistry=accountingRegistry;
+        this.inventoryRegistry= new InventoryRegistry();
+        this.printer=new Printer();
+        this.accountingRegistry= new AccountingRegistry();
     }
     /**
      * Get inventoryRegistry

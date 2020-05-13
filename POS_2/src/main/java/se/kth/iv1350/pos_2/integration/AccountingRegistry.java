@@ -26,11 +26,13 @@ public class AccountingRegistry {
      */
     public void bookSale(SaleInformation saleInformation){
         saleData.put(saleInformation.getLocalTime(), saleInformation);
-        System.out.println("The sale is booked ");
     }
     
     public HashMap <String,SaleInformation> getSaleData(){
        
         return saleData;
     }    
+    
+ 
+        
 }

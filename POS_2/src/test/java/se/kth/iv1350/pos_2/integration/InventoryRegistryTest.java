@@ -31,6 +31,7 @@ public class InventoryRegistryTest {
     void setUp() {
         jäst=new ItemDescriptionDTO(333);
         mjölk=new ItemDescriptionDTO(222, 20.89, 25, "mjölk",3);
+        int mjölkIdentifier=222;
         chips = new ItemDescriptionDTO(123);
         inventory=new InventoryRegistry();
         sale = new SaleInformation();
@@ -52,15 +53,10 @@ public class InventoryRegistryTest {
     /**
      * Test of getItem method, of class InventoryRegistry.
      */
+   
+    
     @Test
-    void testGetItemNull() {
-        inventory.getItem(chips);
-        assertEquals(inventory.getItem(chips), null,"return null is failed"
-                + "when item does not exist in inventory");
-       
-    }
-    @Test
-    void testGetItem() {
+    void testGetItem() throws NoSuchItemException {
         inventory.getItem(mjölk);
         assertEquals(inventory.getItem(mjölk).toString(), mjölk.toString(),
                 "The method getitem failed");

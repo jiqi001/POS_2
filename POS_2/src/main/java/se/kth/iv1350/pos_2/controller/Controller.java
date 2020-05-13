@@ -5,15 +5,17 @@
  */
 package se.kth.iv1350.pos_2.controller;
 
-import se.kth.iv1350.pos_2.integration.AccountingRegistry;
+import java.util.ArrayList;
+import java.util.List;
 import se.kth.iv1350.pos_2.integration.ExtenalSystem;
-import se.kth.iv1350.pos_2.integration.InventoryRegistry;
 import se.kth.iv1350.pos_2.integration.ItemDescriptionDTO;
-import se.kth.iv1350.pos_2.integration.Printer;
+import se.kth.iv1350.pos_2.integration.NoConnectToDatabaseException;
+import se.kth.iv1350.pos_2.integration.NoSuchItemException;
 import se.kth.iv1350.pos_2.modell.CashRegister;
 import se.kth.iv1350.pos_2.modell.Payment;
 import se.kth.iv1350.pos_2.modell.Receipt;
 import se.kth.iv1350.pos_2.modell.SaleInformation;
+import se.kth.iv1350.pos_2.modell.TotalAmountObserver;
 
 
 
@@ -27,33 +29,42 @@ public class Controller {
     private int change;
     private CashRegister cashRegister;
     private Receipt receipt;
-    private InventoryRegistry inventoryRegistry;
-    private AccountingRegistry accountingRegistry;
-    private Printer printer;
     private ExtenalSystem extenalSystem;
+    private List <TotalAmountObserver> observers=new ArrayList<>();
+    
+    public Controller(ExtenalSystem extenalSystem){
+        this.extenalSystem=extenalSystem;
+        
+    }
    
     /**
      * Starts a new sale, this is a start point of whole saleprocess.
      */
     public void startSale(){
         this.saleInformation = new SaleInformation();
+        
     }
     /**
-     * Uppdate the information about a sale when a new item is scanned. When the item exists
-     * then adds the item, otherwise send a message about the invalid item.
-     * @param scannedItem The item will be bought by customer.
+     * Update the information about a sale when a new item is scanned.When the item exists
+     * in the inventoryRegistry, the item will be saved, otherwise throws exceptions.
+     * @param identifier barcode of a specific item.
+     * @throws InventoryDatabaseException, if failed to connect the database of the inventoryRegistry.
+     * @throws NoSuchItemException, if the searched identifier does not exist in the inventoryRegistry.
      */
 
-    public void uppdateSaleInformation(ItemDescriptionDTO scannedItem){
-    	InventoryRegistry inventoryRegistry = new InventoryRegistry();
-        ItemDescriptionDTO validItem = inventoryRegistry.getItem(scannedItem);
-     
-        if(validItem!=null){
+    public void uppdateSaleInformation(int identifier) throws InventoryDatabaseException, NoSuchItemException {
+        ItemDescriptionDTO scannedItem = new ItemDescriptionDTO(identifier);
+        
+        try{ 
+            ItemDescriptionDTO validItem = extenalSystem.getInventoryRegistry().getItem(scannedItem);
+            if(validItem!=null&& validItem.getIdentifier()!=999)
             saleInformation.saveScannedItem(validItem);
-        } 
-        if(validItem==null){
-        System.out.println("Invalid item");
         }
+        
+        catch(NoConnectToDatabaseException msg){
+            throw new InventoryDatabaseException("InventoryDatabaseError",msg);
+        }
+       
     }
  /**
   * Customer pay the payment, then sale information is send to external accounting system 
@@ -66,30 +77,34 @@ public class Controller {
     
     public int pay(int paidAmount){
         payment = new Payment(paidAmount);
+        saleInformation.addPaidAmount(observers);
         change = saleInformation.payTotalCost(payment);
-        
-        accountingRegistry = new AccountingRegistry();
-        accountingRegistry.bookSale(saleInformation);
-        
-        InventoryRegistry inventoryRegistry = new InventoryRegistry();
-        inventoryRegistry.decreaseQuantityOfSoldItem(saleInformation);
+        extenalSystem.getAccoutingRegistry().bookSale(saleInformation);
         
         receipt = new Receipt(saleInformation);
-        printer = new Printer();
-        printer.getReceipt(receipt);
+        extenalSystem.getPrinter().getReceipt(receipt);
         
         cashRegister=new CashRegister();
         cashRegister.addPayment(payment);
-        
         setnull();
      
         return change;
         
     }
-/**
- * clear the sale when it is finshed.
- */
+    /**
+     * clear the sale when it is finished.
+     */
     public void setnull(){
         this.saleInformation = null;         
-    }   
+    }
+    /**
+     * Add the object of TotalAmountObserver to the array list observers.
+     * @param obj 
+     */
+    public void addObserver(TotalAmountObserver obj){
+        observers.add(obj);
+     
+    }
+
+    
 }
